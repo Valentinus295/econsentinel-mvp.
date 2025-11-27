@@ -97,7 +97,9 @@ col_map, col_feed = st.columns([2, 1])
 with col_map:
     st.subheader("📍 Geospatial Threat Heatmap")
     # The Map
-    st.map(df, latitude='lat', longitude='lon', size='Population', color='color')
+   # Create a scaled population column for display
+df['Size_Scaled'] = df['Population'] / 100
+st.map(df, latitude='lat', longitude='lon', size='Size_Scaled', color='color')
     st.caption("🔴 Red: Critical Risk (Probability > 75%) | 🟡 Amber: Economic Stress | 🟢 Green: Stable")
 
 with col_feed:
