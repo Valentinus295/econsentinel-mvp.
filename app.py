@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 
-# --- 1. PAGE CONFIGURATION (Intelligence Dashboard Look) ---
+# --- 1. PAGE CONFIGURATION ---
 st.set_page_config(
     page_title="EconSentinel | National Command",
     page_icon="🛡️",
@@ -26,7 +26,7 @@ st.sidebar.title("🛡️ EconSentinel")
 st.sidebar.markdown("**Socio-Economic Threat Prediction Engine**")
 st.sidebar.markdown("---")
 
-# A. Data Feed Status (Showing off your Sources)
+# A. Data Feed Status
 st.sidebar.subheader("📡 Live Data Feeds")
 st.sidebar.success("✅ KNBS Macro-Econ (Connected)")
 st.sidebar.success("✅ EPRA Fuel API (Connected)")
@@ -74,6 +74,10 @@ def get_color(risk):
 
 df['color'] = df['Live_Risk'].apply(get_color)
 
+# FIX: Scale the Population Size so bubbles aren't huge
+# We divide by 1000 to convert Population to a reasonable radius in meters/pixels
+df['map_size'] = df['Population'] / 100
+
 # --- 5. MAIN DASHBOARD UI ---
 
 # Header
@@ -96,10 +100,10 @@ col_map, col_feed = st.columns([2, 1])
 
 with col_map:
     st.subheader("📍 Geospatial Threat Heatmap")
-    # The Map
-   # Create a scaled population column for display
-df['Size_Scaled'] = df['Population'] / 100
-st.map(df, latitude='lat', longitude='lon', size='Size_Scaled', color='color')
+    
+    # The Map (Using the scaled size)
+    st.map(df, latitude='lat', longitude='lon', size='map_size', color='color')
+    
     st.caption("🔴 Red: Critical Risk (Probability > 75%) | 🟡 Amber: Economic Stress | 🟢 Green: Stable")
 
 with col_feed:
