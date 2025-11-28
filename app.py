@@ -134,3 +134,15 @@ chart_data = pd.DataFrame({
     'Security Incidents': [10, 12, 15, 25, 75, 95]
 })
 st.line_chart(chart_data.set_index('Week'), color=['#0000FF', '#FF0000'])
+# --- FOOTER & DISCLAIMER ---
+st.markdown("---")
+st.markdown("""
+<div style="text-align: center; color: grey; font-size: 12px;">
+    © 2025 EconSentinel Project. <br>
+    <b>DISCLAIMER:</b> This dashboard is a prototype for the National AI Hackathon 2025. 
+    Predictions are based on simulated/historical data for demonstration purposes 
+    and should not be used for operational decision-making without further validation.
+    <br>
+    <i>Compliance: Kenya Data Protection Act 2019 | NIST AI Risk Management Framework</i>
+</div>
+""", unsafe_allow_html=True)
