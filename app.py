@@ -13,8 +13,7 @@ st.set_page_config(
 # --- 2. LOAD DATA ---
 @st.cache_data
 def load_data():
-    # In production, this would connect to PostgreSQL/APIs
-    # For MVP, we use the CSV snapshot
+    # Load the CSV file
     return pd.read_csv("data.csv")
 
 try:
@@ -43,7 +42,7 @@ else:
 
 st.sidebar.divider()
 
-# B. Live Data Feed Status (The "Flex")
+# B. Live Data Feed Status
 st.sidebar.subheader("📡 Data Feed Status")
 st.sidebar.success("✅ KNBS Macro-Econ (Connected)")
 st.sidebar.success("✅ EPRA Fuel API (Connected)")
@@ -65,23 +64,23 @@ def calculate_live_risk(row):
     # Start with the historical base risk
     base = row['Base_Risk']
     
-    # 1. Fuel Shock Logic (Impacts Transport Hubs like Nairobi/Mombasa heavily)
+    # 1. Fuel Shock Logic
     if fuel_shock > 10:
         base += 15
     if fuel_shock > 25:
         base += 20  # Critical jump
         
-    # 2. Tax Hike Logic (Broad impact)
+    # 2. Tax Hike Logic
     if tax_hike > 2:
         base += (tax_hike * 1.5)
         
-    # 3. Subsidy Logic (Mitigation)
+    # 3. Subsidy Logic
     if subsidy:
         base -= 25
         
     return min(base, 100) # Cap risk at 100%
 
-# Apply the logic to create a new "Live" column
+# Apply the logic
 df['Live_Risk'] = df.apply(calculate_live_risk, axis=1)
 
 # Assign Colors for the Map (Red/Amber/Green)
@@ -92,9 +91,8 @@ def get_color(risk):
 
 df['color'] = df['Live_Risk'].apply(get_color)
 
-# FIX: Scale Population so bubbles fit nicely on the map
-# We divide by 1000 to convert raw population into a pixel radius
-df['map_size'] = df['Population'] / 1000
+# FIX: Scale Population massively so bubbles are dots, not planets
+df['map_size'] = df['Population'] / 50000
 
 # --- 5. MAIN DASHBOARD UI ---
 
@@ -106,10 +104,13 @@ st.markdown(f"**Status:** Live Monitoring | **Mode:** {data_mode}")
 col1, col2, col3, col4 = st.columns(4)
 national_avg_risk = df['Live_Risk'].mean()
 
+# Color Logic: High Risk = Red, Low Risk = Green
+risk_delta_color = "inverse" if national_avg_risk > 50 else "normal"
+
 col1.metric("🛡️ National Stability", f"{100-national_avg_risk:.1f}%", delta=f"{-fuel_shock} Impact", delta_color="normal")
-col2.metric("⛽ Fuel Avg (EPRA)", f"KES {215 + fuel_shock}", "Real-time")
-col3.metric("🌽 Maize 2kg (KNBS)", "KES 230", "+2.4%")
-col4.metric("🛰️ Drought Index (NDVI)", "0.45", "-0.1 (Worsening)")
+col2.metric("⛽ Fuel Avg (EPRA)", f"KES {215 + fuel_shock}", "Real-time", delta_color="inverse")
+col3.metric("🌽 Maize 2kg (KNBS)", "KES 230", "+2.4%", delta_color="inverse")
+col4.metric("🛰️ Drought Index (NDVI)", "0.45", "-0.1 (Worsening)", delta_color="inverse")
 
 st.divider()
 
@@ -119,7 +120,7 @@ col_map, col_feed = st.columns([2, 1])
 with col_map:
     st.subheader("📍 Geospatial Threat Heatmap")
     
-    # The Map (Using the scaled 'map_size' column)
+    # The Map (Using the scaled 'map_size')
     st.map(df, latitude='lat', longitude='lon', size='map_size', color='color')
     
     st.caption("🔴 Red: Critical Risk (Probability > 75%) | 🟡 Amber: Economic Stress | 🟢 Green: Stable")
@@ -127,7 +128,7 @@ with col_map:
 with col_feed:
     st.subheader("🛑 Live Intelligence Feed")
     
-    # Dynamic Feed based on Sliders
+    # Dynamic Feed based on Sliders (This is the Simulation!)
     if fuel_shock > 15:
         st.error("🚨 CRITICAL ALERT: Fuel Shock > 15 KES detected.")
         st.write(f"**Predicted Consequence:** Transport paralysis in Nairobi within 48 hours.")
