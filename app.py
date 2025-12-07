@@ -95,4 +95,4 @@ def calculate_live_risk(row):
     # 3. Subsidy Logic
     if subsidy: base -= 20
     
-    return min(base, 100
+    return min(base, 100)
